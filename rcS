@@ -1,0 +1,15 @@
+#!/bin/sh
+
+/bin/mount -t proc proc /proc
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t debugfs nodev /sys/kernel/debug
+/bin/mount -t tmpfs -o size=64k,mode=0755 tmpfs /dev
+mkdir /dev/pts
+/bin/mount -t devpts devpts /dev/pts
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+/sbin/mdev -s
+
+for i in /sys/bus/*/devices/*/uevent; do echo add > $i; done
+
+modprobe pwc
+echo 1 > /sys/kernel/debug/tracing/events/pwc/enable
