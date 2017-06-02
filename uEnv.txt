@@ -1,0 +1,8 @@
+serverip=192.168.185.79
+ipaddr=192.168.185.89
+load_kernel=tftp ${loadaddr} /zImage
+load_initrd=tftp ${rdaddr} /initrd; set rdsize ${filesize}
+load_fdt=tftp ${fdtaddr} /am335x-boneblack.dtb
+bootcmd=run load_kernel; run load_initrd; run load_fdt; bootz ${loadaddr} ${rdaddr}:${rdsize} ${fdtaddr}
+bootargs=console=ttyS0,115200 init=/linuxrc loglevel=7
+uenvcmd=run bootcmd
