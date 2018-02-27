@@ -1,5 +1,8 @@
 include config.mk
 
+export PATH := /opt/gcc-linaro-4.8-2015.06-x86_64_arm-linux-gnueabihf/bin:$(PATH)
+export KBUILD_OUTPUT := /home/matwey/lab/build
+
 BUSYBOX_LINKS:=$(addprefix ${BUILD_DIR}/busybox, $(shell cat ${BUSYBOX_LINKS_FILE}))
 
 all: ${TFTPD_DIR}/zImage ${TFTPD_DIR}/initrd ${TFTPD_DIR}/${DTB_FILE}
@@ -11,10 +14,14 @@ clean:
 	rm -rf busybox.cpio
 
 ${LINUX_BUILD_DIR}/arch/arm/boot/zImage:
-	make -C ${LINUX_SOURCE_DIR} KBUILD_OUTPUT=${LINUX_BUILD_DIR} ARCH=arm CROSS_COMPILE=arm-suse-linux-gnueabi- CC=arm-suse-linux-gnueabi-gcc-6 zImage
+	make -C ${LINUX_SOURCE_DIR} KBUILD_OUTPUT=${LINUX_BUILD_DIR} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CC=arm-linux-gnueabihf-gcc zImage
+
+.PHONY: ${BUILD_DIR}/kernel/.modules
 
 ${BUILD_DIR}/kernel/.modules:
-	make -C ${LINUX_SOURCE_DIR} KBUILD_OUTPUT=${LINUX_BUILD_DIR} ARCH=arm CROSS_COMPILE=arm-suse-linux-gnueabi- CC=arm-suse-linux-gnueabi-gcc-6 modules_install INSTALL_MOD_PATH=${BUILD_DIR}/kernel INSTALL_MOD_STRIP=1 && touch ${BUILD_DIR}/kernel/.modules
+	rm -rf ${BUILD_DIR}/kernel
+	make -C ${LINUX_SOURCE_DIR} KBUILD_OUTPUT=${LINUX_BUILD_DIR} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CC=arm-linux-gnueabihf-gcc modules_install INSTALL_MOD_PATH=${BUILD_DIR}/kernel INSTALL_MOD_STRIP=1
+	touch ${BUILD_DIR}/kernel/.modules
 
 ${BUILD_DIR}/busybox/%:
 	mkdir -p $(shell dirname $@)
@@ -47,6 +54,7 @@ ${TFTPD_DIR}/zImage: ${LINUX_BUILD_DIR}/arch/arm/boot/zImage
 	cp $< $@
 
 ${TFTPD_DIR}/${DTB_FILE}: ${LINUX_BUILD_DIR}/arch/arm/boot/dts/${DTB_FILE}
+#${TFTPD_DIR}/${DTB_FILE}: ${LINUX_BUILD_DIR}/arch/arm/boot/dts/am335x-bone.dtb
 	cp $< $@
 
 .phony: all clean
